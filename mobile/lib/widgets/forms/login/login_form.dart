@@ -379,26 +379,8 @@ class LoginForm extends HookConsumerWidget {
             codeChallenge,
           );
 
-          if (loginResponseDto == null) {
-            return;
-          }
-
-          log.info("Finished OAuth login with response: ${loginResponseDto.userEmail}");
-
-          final isSuccess = await ref
-              .watch(authProvider.notifier)
-              .saveAuthInfo(accessToken: loginResponseDto.accessToken);
-
-          if (isSuccess) {
-            await ref.read(galleryPermissionNotifier.notifier).requestGalleryPermission();
-            if (isSyncRemoteDeletionsMode()) {
-              await getManageMediaPermission();
-            }
-            unawaited(handleSyncFlow());
-            unawaited(ref.read(featureMessageServiceProvider).markSeen());
-            unawaited(context.router.replaceAll([const TabShellRoute()]));
-            return;
-          }
+          invalidateAllApiRepositoryProviders(ref);
+          break;
         } catch (error, stack) {
           if (attempt == 0 && await showCertOverrideDialog()) continue;
           log.severe('Error getting OAuth server Url: $error', stack);
